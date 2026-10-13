@@ -27,18 +27,24 @@ SECRET_KEY = 'django-insecure-mepfam6!8oz0p=(4g)nk30i(m$7vb3%^(%+1)8sfh80ozxuzne
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = []
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party
+    "rest_framework",
+    # Local apps
+    "doctors",
+    "patients",
 ]
 
 MIDDLEWARE = [

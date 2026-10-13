@@ -63,6 +63,9 @@ indent-style = "space"
 # ----------------------------------------------------------------------
 [tool.mypy]
 python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+exclude = ["manage.py"]
+mypy_path = ["apps"]
 strict = true                      # Включает все строгие проверки флагом
 disallow_untyped_defs = true       # Запрещает функции без тайпхинтов
 disallow_incomplete_defs = true   # Запрещает частичные типы (например: def foo(x: int) -> без возврата)
@@ -71,3 +74,8 @@ no_implicit_optional = true       # None нельзя передать, если
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true             # Ругается, если функция возвращает неконтролируемый тип Any
+
+
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
