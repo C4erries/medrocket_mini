@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "c4erries", email = "04shapochka04@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = []
 
 [project.scripts]
@@ -15,3 +15,54 @@ medrocket-mini = "medrocket_mini:main"
 [build-system]
 requires = ["uv_build>=0.12.24,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "ruff>=0.17.0",
+]
+
+# ----------------------------------------------------------------------
+# RUFF (Linter + Formatter) — замена golangci-lint
+# ----------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+# Исключения (миграции Django проверять на стиль бессмысленно)
+exclude = [
+    ".venv",
+    "migrations",
+]
+
+[tool.ruff.lint]
+# Список правил, которые линтер обязан проверять:
+select = [
+    "E",   # pycodestyle errors (синтаксический PEP 8: отступы, пробелы)
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes (баги: необъявленные переменные, циклические импорты)
+    "I",   # isort (автоматическая сортировка импортов по алфавиту и группам)
+    "B",   # flake8-bugbear (типичные грабли: изменяемые аргументы функций и т.д.)
+    "UP",  # pyupgrade (заставляет писать на современном синтаксисе Python 3.12+)
+    "ARG", # unused arguments (в Go это ошибка компилятора — здесь отлавливает Ruff)
+]
+ignore = []
+
+[tool.ruff.format]
+# Настройки автоформаттера (аналог gofmt)
+quote-style = "double"
+indent-style = "space"
+
+# ----------------------------------------------------------------------
+# MYPY — статический анализатор типов
+# ----------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true                      # Включает все строгие проверки флагом
+disallow_untyped_defs = true       # Запрещает функции без тайпхинтов
+disallow_incomplete_defs = true   # Запрещает частичные типы (например: def foo(x: int) -> без возврата)
+check_untyped_defs = true         # Проверяет тела даже нетипизированных функций
+no_implicit_optional = true       # None нельзя передать, если явно не указано int | None (аналог nil pointer safety)
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true             # Ругается, если функция возвращает неконтролируемый тип Any
