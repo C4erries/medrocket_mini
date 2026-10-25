@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from appointments.models import Appointment, AppointmentStatus
+from core.decorators import measure_and_protect
 
 
 @dataclass(frozen=True, slots=True)
@@ -11,7 +12,7 @@ class AppointmentCreateDTO:
     start_time: datetime
     end_time: datetime
 
-
+@measure_and_protect("create_appointment", max_duration_seconds=1.5)
 def appointment_create(
     dto: AppointmentCreateDTO,
     /,

@@ -1,7 +1,8 @@
 import functools
+import logging
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ParamSpec, TypeVar
 
 
 def retry(
@@ -30,4 +31,64 @@ def retry(
 
         return wrapper
 
+    return decorator
+
+logger = logging.getLogger(__name__)
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+def audit_action(
+    action_name: str,
+    *,
+    log_level: int = logging.INFO,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """
+    Логирует старт, успешное завершение и ошибки выполнения функции.
+    """
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            try:
+                result = func(*args, **kwargs)
+            except Exception as exc:
+                logging.error("FAILED: %s [action=%s], error=%s", func.__name__, action_name, exc)
+                raise
+            else:
+                logger.log(log_level, "SUCCESS: %s [actions=%s]", func.__name__, action_name)
+                return result
+            finally:
+                logger.debug("FINISH: %s lificycle completed", func.__name__)
+        return wrapper
+    return decorator
+
+def measure_and_protect(
+    operation_name: str,
+    *,
+    max_duration_seconds: float = 2.0,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """Безопасность и контроль времени выполнения."""
+    if max_duration_seconds <= 0:
+        raise ValueError("max_durations_seconds must be grater then 0")
+
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            start_time = time.perf_counter()
+            try:
+                result = func(*args, **kwargs)
+            except Exception as exc:
+                # Зачем тут логгировать.
+                # Разве наш декоратор должен эту функцию выполнять, логгирования ошибок ?
+                logger.error(
+                    "FAILED: %s [operation=%s], error=%s",
+                    func.__name__, operation_name, exc)
+                raise
+            else:
+                return result
+            finally:
+                duration = time.perf_counter()-start_time
+                if duration > max_duration_seconds:
+                    logger.warning(f"SLOW OPERATION: {operation_name} took {duration:.4f}s")
+        return wrapper
     return decorator
