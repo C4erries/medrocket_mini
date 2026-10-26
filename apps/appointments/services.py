@@ -1,8 +1,10 @@
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
 
 from appointments.models import Appointment, AppointmentStatus
 from core.decorators import measure_and_protect
+from core.export import SafeBatchProcessor, chunked_iterable
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,3 +47,16 @@ def appointment_create(
 
 def appointment_notify(appointment: Appointment) -> None:
     pass
+
+def export_appointments_to_csv_rows(
+    appointments: Iterable[Appointment],
+    chunk_size: int = 100
+    ) -> Iterator[list[str]]:
+    with SafeBatchProcessor("appointments_csv") as proc:
+        csv_strings = []
+        for appts in chunked_iterable(appointments, chunk_size):
+            for appt in appts:
+                csv_strings.append(str(appt))
+                proc.track_item()
+            yield csv_strings
+            csv_strings = []
