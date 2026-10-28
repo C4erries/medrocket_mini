@@ -39,11 +39,14 @@ def appointment_create(
 
     appointment.full_clean()
     appointment.save()
-
     if send_notification:
         appointment_notify(appointment)
 
     return appointment
+
+
+def appointment_get(appt_id: int) -> Appointment | None:
+    return Appointment.objects.filter(id=appt_id).first()
 
 def appointment_notify(appointment: Appointment) -> None:
     pass
