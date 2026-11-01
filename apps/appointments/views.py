@@ -12,8 +12,9 @@ from appointments.serializers import (
 )
 from appointments.services import (
     AppointmentCreateDTO,
+    appointment_cancel,
     appointment_create,
-    appointment_get,
+    appointment_get_cached,
 )
 
 
@@ -41,10 +42,17 @@ def appointment_create_api_view(request: HttpRequest) -> HttpResponse:
 
 @require_safe
 def appointment_detail_api_view(_request: HttpRequest, appointment_id: int) -> HttpResponse:
-    appointment = appointment_get(appt_id=appointment_id)
+    appointment = appointment_get_cached(appointment_id)
     if appointment is None:
         return JsonResponse({"error": "Appointment not found"}, status=404)
 
     serializer = AppointmentOutputSerializer(appointment)
 
     return JsonResponse(serializer.data, status=200)
+
+@require_POST
+def appointment_cancel_api_view(_request: HttpRequest, appointment_id: int) -> HttpResponse:
+    appt = appointment_cancel(appointment_id)
+    if appt is None:
+        return JsonResponse({"error": "Appointment not found"}, status=404)
+    return JsonResponse({"id": appt.id, "status": appt.status}, status=200)
